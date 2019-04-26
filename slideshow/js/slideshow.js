@@ -4,7 +4,7 @@
 var createSlideshow = function () {
     "use strict";
     // PRIVATE VARIABLES AND FUNCTIONS
-    var timer, play = true, nodes, img, stopSlideShow, displayNextImage, setPlayText;
+    var timer, play = true, nodes, img, stopSlideShow, displayNextImage, setPlayText, speed = 2000;
     
     nodes = { image: null, caption: null };
     img = { cache: [], counter: 0 };
@@ -13,14 +13,14 @@ var createSlideshow = function () {
         clearInterval(timer);
     };
     displayNextImage = function () {
-        if (img.counter === img.cache.length) {
-            img.counter = 0;
-        } else {
-            img.counter += 1;
-        }
         var image = img.cache[img.counter];
         nodes.image.src = image.src;
         nodes.caption.innerHTML = image.title;
+        
+        img.counter += 1;
+        if (img.counter === img.cache.length) {
+            img.counter = 0;
+        }
     };
     setPlayText = function (btn) {
         if (play) {
@@ -46,7 +46,7 @@ var createSlideshow = function () {
                 nodes.image = arguments[0];
                 nodes.caption = arguments[1];
             }
-            timer = setInterval(displayNextImage, 2000);
+            timer = setInterval(displayNextImage, speed);
             return this;
         },
         createToggleHandler: function () {
@@ -64,6 +64,16 @@ var createSlideshow = function () {
                 // TOGGLE PLAY 'FLAG'
                 play = !play;
             };
+        },
+        setSpeed: function (newSpeed) {
+            speed = newSpeed;
+            if (play) {
+                stopSlideShow();
+                this.startSlideShow();
+            }
+        },
+        getSpeed: function () {
+            return speed;
         }
     };
 };
@@ -75,6 +85,19 @@ var $ = function (id) {
 
 // CREATE THE SLIDESHOW OBJECT
 var slideshow = createSlideshow();
+
+function setSpeedHandler(slideshow) {
+    "use strict";
+    var newSpeed;
+    
+    newSpeed = parseInt(window.prompt("Enter an interval (ms)"), 10);
+    if (isNaN(newSpeed)) {
+        window.alert("Invalid value entered");
+    } else {
+        slideshow.setSpeed(newSpeed);
+        $("set_speed").value = "Speed: " + slideshow.getSpeed() + "ms";
+    }
+}
 
 window.addEventListener("load", function () {
     "use strict";
@@ -89,4 +112,8 @@ window.addEventListener("load", function () {
     slideshow.loadImages(slides).startSlideShow($("image"), $("caption"));
     // PAUSE THE SLIDESHOW
     $("play_pause").onclick = slideshow.createToggleHandler();
+    $("set_speed").onclick = function () {
+        setSpeedHandler(slideshow);
+    };
+    $("set_speed").value = "Speed: " + slideshow.getSpeed() + "ms";
 });
